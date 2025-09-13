@@ -17,6 +17,8 @@ public class PlayerBehaviour: MonoBehaviour{
     [Range(0, 10)]
     public float rollSpeed = 5;
 
+    public float horizontalSpeed;
+
 
     public void Start(){
 
@@ -31,7 +33,27 @@ public class PlayerBehaviour: MonoBehaviour{
     public void FixedUpdate(){
 
         // Check input and move horizontally accordingly.
-        var horizontalSpeed = Input.GetAxis("Horizontal") * dodgeSpeed;
+        if (Input.touchCount > 0){
+
+            var cam = Camera.main;
+
+            var firstTouch = Input.touches[0];
+
+            var screenPos = firstTouch.position;
+            var viewPos = cam.ScreenToViewportPoint(screenPos);
+
+            float xMove = 0;
+
+            if (viewPos.x < 0.5f){
+                xMove = -1;
+            }else{
+                xMove = 1;
+            }
+
+            horizontalSpeed = xMove * dodgeSpeed;
+
+        }
+
         body.AddForce(horizontalSpeed, 0, rollSpeed);
 
     }
