@@ -5,6 +5,12 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerBehaviour: MonoBehaviour{
+
+    public float minScale = 0.5f;
+    public float maxScale = 3.0f;
+
+    private float currentScale = 1;
+
     
     public float swipeMove = 2f;
     public float minSwipeDistance = 0.25f;
@@ -76,8 +82,45 @@ public class PlayerBehaviour: MonoBehaviour{
                 Touch first = Input.touches[0];
 
                 SwipeTeleport(first);
+                ScalePlayer();
             }
+            
         #endif
+
+    }
+
+    private void ScalePlayer(){
+
+        if (Input.touchCount != 2){
+            return;
+        }
+        else{
+
+            Touch t0 = Input.touches[0];
+            Touch t1 = Input.touches[1];
+
+            Vector2 t0pos = t0.position;
+            Vector2 t0delta = t0.deltaPosition;
+
+            Vector2 t1pos = t1.position;
+            Vector2 t1delta = t1.deltaPosition;
+
+            Vector2 t0prev = t0pos - t0delta;
+            Vector2 t1prev = t1pos - t1delta;
+
+            float prevTDeltaMag = (t0prev - t1prev).magnitude;
+            float tDeltaMag = (t0pos - t1pos).magnitude;
+
+            float deltaMagDiff = prevTDeltaMag - tDeltaMag;
+
+            float newScale = currentScale;
+            newScale -= Mathf.Clamp(newScale, minScale, maxScale);
+
+            transform.localScale = Vector3.one * newScale;
+
+            currentScale = newScale;
+
+        }
 
     }
 
