@@ -6,6 +6,13 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerBehaviour: MonoBehaviour{
     
+    public float swipeMove = 2f;
+    public float minSwipeDistance = 0.25f;
+
+    private float minSwipeDistancePixels;
+
+    private Vector2 touchStart;
+
     /// <summary>
     /// A reference to the Rigidbody component.
     /// </summary>
@@ -24,6 +31,8 @@ public class PlayerBehaviour: MonoBehaviour{
 
         // Get access to our Rigidbody component.
         body = GetComponent<Rigidbody>();
+
+        minSwipeDistancePixels = minSwipeDistance + Screen.dpi;
 
     }
 
@@ -57,6 +66,55 @@ public class PlayerBehaviour: MonoBehaviour{
 
         body.AddForce(horizontalSpeed, 0, rollSpeed);
 
+    }
+
+    public void Update(){
+
+        #if UNITY_IOS || UNITY_ANDROID
+
+            if(Input.touchCount > 0){
+                Touch first = Input.touches[0];
+
+                SwipeTeleport(first);
+            }
+        #endif
+
+    }
+
+    private void SwipeTeleport(Touch touch){
+
+        if (touch.phase == TouchPhase.Began){
+            touchStart = touch.position;
+        }
+        else if (touch.phase == TouchPhase.Ended){
+            Vector2 touchEnd = touch.position;
+
+            float x = touchEnd.x - touchStart.x;
+
+            if(Mathf.Abs(x) < minSwipeDistancePixels){
+                return;
+            }
+
+            Vector3 moveDirection;
+
+            if (x < 0){
+                moveDirection = Vector3.left;
+            }
+            else{
+                moveDirection = Vector3.right;
+            }
+
+            RaycastHit hit;
+
+            if (!body.SweepTest(moveDirection, out hit, swipeMove)){
+
+                var movement = moveDirection * swipeMove;
+                var newPos = body.position + movement;
+
+                body.MovePosition(newPos);
+
+            }
+        }
     }
 
     public float CalculateMovement (Vector3 scrPos){
