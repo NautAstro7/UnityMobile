@@ -32,30 +32,47 @@ public class PlayerBehaviour: MonoBehaviour{
     /// </summary>
     public void FixedUpdate(){
 
-        // Check input and move horizontally accordingly.
-        if (Input.touchCount > 0){
+        var horizontalSpeed = Input.GetAxis("Horizontal") * dodgeSpeed;
 
-            var cam = Camera.main;
+        #if UNITY_STANDALONE || UNITY_WEBPLAYER || UNITY_EDITOR
 
-            var firstTouch = Input.touches[0];
-
-            var screenPos = firstTouch.position;
-            var viewPos = cam.ScreenToViewportPoint(screenPos);
-
-            float xMove = 0;
-
-            if (viewPos.x < 0.5f){
-                xMove = -1;
-            }else{
-                xMove = 1;
+            if (Input.GetMouseButton(0)){
+                var screenPos = Input.mousePosition;
+                horizontalSpeed = CalculateMovement(screenPos);
             }
 
-            horizontalSpeed = xMove * dodgeSpeed;
+        #elif UNITY_IOS || UNITY_ANDROID
 
-        }
+            // Check input and move horizontally accordingly.
+            if (Input.touchCount > 0){
+
+                var firstTouch = Input.touches[0];
+                var screenPos = firstTouch.position;
+
+                horizontalSpeed = CalculateMovement(screenPos);
+
+            }   
+
+        #endif
 
         body.AddForce(horizontalSpeed, 0, rollSpeed);
 
+    }
+
+    public float CalculateMovement (Vector3 scrPos){
+        var cam = Camera.main;
+
+        var viewPos = cam.ScreenToViewportPoint(scrPos);
+
+        float xMove = 0;
+
+        if (viewPos.x < 0.5f){
+            xMove = -1;
+        }else{
+            xMove = 1;
+        }
+
+        return xMove * dodgeSpeed;
     }
 
 }
